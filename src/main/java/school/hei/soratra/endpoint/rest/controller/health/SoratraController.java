@@ -3,9 +3,12 @@ package school.hei.soratra.endpoint.rest.controller.health;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URL;
+import java.time.Duration;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -63,4 +66,20 @@ public class SoratraController {
     return tempFile;
   }
 
+
+  @GetMapping("/soratra/{id}")
+  public ResponseEntity<Object> getSoratra(@PathVariable String id) {
+    String bucketKey = "soratra/" + id + "/poeme.txt";
+
+    // Récupérer l'URL pré-signée pour le fichier original (minuscule)
+    URL originalUrl = bucketComponent.presign(bucketKey, Duration.ofMinutes(10));
+
+    // Récupérer l'URL pré-signée pour le fichier transformé (majuscule)
+    URL transformedUrl = bucketComponent.presign(bucketKey + "_transformed.txt", Duration.ofMinutes(10));
+
+    // Création du JSON de réponse
+    String responseBody = String.format("{\"original_url\": \"%s\", \"transformed_url\": \"%s\"}", originalUrl, transformedUrl);
+
+    return ResponseEntity.status(HttpStatus.OK).body(responseBody);
+  }
 }
